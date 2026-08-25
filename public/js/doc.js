@@ -2,7 +2,7 @@
 // MyExcelDB Documentation Frontend
 // ============================================================
 
-const API_BASE = process.env.API_BASE;
+const API_BASE = "https://myowndb-p9gt.onrender.com";
 
 // ============================================================
 // STATE
