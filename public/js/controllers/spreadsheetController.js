@@ -1,12 +1,10 @@
 // /js/controllers/spreadsheetController.js
 
 export default class SpreadsheetController {
-
-   getToken() {
+  getToken() {
     return localStorage.getItem("authToken");
   }
 
-  
   constructor(auth) {
     this.auth = auth;
 
@@ -77,17 +75,17 @@ export default class SpreadsheetController {
     try {
       this.setStatus("Loading...");
 
-       const token = this.getToken();
-    if (!token) {
-      return null;
-    }
+      const token = this.getToken();
+      if (!token) {
+        return null;
+      }
 
       const response = await fetch("/api/workbook", {
         method: "GET",
 
         credentials: "include",
 
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       // -----------------------------------------
@@ -439,29 +437,15 @@ export default class SpreadsheetController {
       let data = [];
 
       try {
-        // --------------------------------
-        // processed = false
-        //
-        // This preserves formulas:
-        //
-        // =B2*C2
-        // =SUM(D2:D4)
-        // --------------------------------
-
         data = worksheet.getData(false, false);
       } catch (error) {
         console.error(`Could not get data from Sheet ${index + 1}:`, error);
       }
 
-      // ---------------------------------
-      // Sheet name
-      // ---------------------------------
-
-      let sheetName = worksheet.options?.worksheetName;
-
-      if (!sheetName) {
-        sheetName = `Sheet${index + 1}`;
-      }
+      let sheetName =
+        worksheet.options?.worksheetName ||
+        worksheet.options?.title ||
+        `Sheet${index + 1}`;
 
       sheetName = String(sheetName).substring(0, 31);
 
@@ -492,10 +476,10 @@ export default class SpreadsheetController {
       //     workbook
       // );
 
-       const token = this.getToken();
-    if (!token) {
-      return null;
-    }
+      const token = this.getToken();
+      if (!token) {
+        return null;
+      }
 
       const response = await fetch("/api/workbook", {
         method: "POST",
