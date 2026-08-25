@@ -1,10 +1,12 @@
 // /js/controllers/spreadsheetController.js
 
 export default class SpreadsheetController {
-  getToken() {
+
+   getToken() {
     return localStorage.getItem("authToken");
   }
 
+  
   constructor(auth) {
     this.auth = auth;
 
@@ -75,17 +77,17 @@ export default class SpreadsheetController {
     try {
       this.setStatus("Loading...");
 
-      const token = this.getToken();
-      if (!token) {
-        return null;
-      }
+       const token = this.getToken();
+    if (!token) {
+      return null;
+    }
 
       const response = await fetch("/api/workbook", {
         method: "GET",
 
         credentials: "include",
 
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       // -----------------------------------------
@@ -428,125 +430,165 @@ export default class SpreadsheetController {
   // BUILD API WORKBOOK
   // =================================================
 
-  getWorkbookData() {
-    const worksheets = this.getWorksheets();
+getWorkbookData() {
+  const worksheets = this.getWorksheets();
 
-    const workbook = {};
+  const workbook = {
+    worksheets: []
+  };
 
-    worksheets.filter(Boolean).forEach((worksheet, index) => {
+  worksheets
+    .filter(Boolean)
+    .forEach((worksheet, index) => {
       let data = [];
 
       try {
         data = worksheet.getData(false, false);
       } catch (error) {
-        console.error(`Could not get data from Sheet ${index + 1}:`, error);
+        console.error(
+          `Could not get data from Sheet ${index + 1}:`,
+          error
+        );
       }
 
-      let sheetName =
-        worksheet.options?.worksheetName ||
-        worksheet.options?.title ||
-        `Sheet${index + 1}`;
+      let worksheetName = `Sheet${index + 1}`;
+      let minDimensions = [12, 30];
+      let columns = [];
 
-      sheetName = String(sheetName).substring(0, 31);
+      try {
+        if (worksheet.options) {
+          worksheetName =
+            worksheet.options.worksheetName ||
+            worksheet.options.title ||
+            worksheetName;
 
-      workbook[sheetName] = Array.isArray(data) ? data : [];
+          minDimensions =
+            worksheet.options.minDimensions ||
+            minDimensions;
+
+          columns =
+            worksheet.options.columns ||
+            [];
+        }
+      } catch (error) {
+        console.warn(
+          `Could not read options from Sheet ${index + 1}:`,
+          error
+        );
+      }
+
+      workbook.worksheets.push({
+        worksheetName: String(worksheetName).substring(0, 31),
+        minDimensions,
+        data: Array.isArray(data) ? data : [],
+        columns: Array.isArray(columns) ? columns : []
+      });
     });
 
-    return workbook;
-  }
+  console.log(
+    "Final workbook:",
+    JSON.stringify(workbook, null, 2)
+  );
+
+  return workbook;
+}
+
 
   // =================================================
   // SAVE WORKBOOK
   // =================================================
 
-  async saveWorkbook() {
-    if (!this.spreadsheet) {
-      console.error("Spreadsheet is not initialized.");
+async saveWorkbook() {
+  if (!this.spreadsheet) {
+    console.error("Spreadsheet is not initialized.");
+    return;
+  }
+
+  try {
+    this.setStatus("Saving...");
+
+    const workbook = this.getWorkbookData();
+
+    console.log("Workbook before save:", workbook);
+    console.log(
+      "Workbook JSON:",
+      JSON.stringify(workbook, null, 2)
+    );
+
+    if (
+      !workbook ||
+      typeof workbook !== "object" ||
+      !Array.isArray(workbook.worksheets)
+    ) {
+      console.error("Invalid workbook:", workbook);
+      this.setStatus("Invalid workbook");
+      return;
+    }
+
+    const token = this.getToken();
+
+    if (!token) {
+      this.setStatus("Authentication required");
+      return;
+    }
+
+    const response = await fetch("/api/workbook", {
+      method: "POST",
+
+      credentials: "include",
+
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify(workbook)
+    });
+
+    if (response.status === 401) {
+      this.setStatus("Session expired");
+
+      if (
+        this.auth &&
+        typeof this.auth.requireLogin === "function"
+      ) {
+        await this.auth.requireLogin();
+      }
 
       return;
     }
 
-    try {
-      this.setStatus("Saving...");
-
-      const workbook = this.getWorkbookData();
-
-      // console.log(
-      //     "Saving workbook:",
-      //     workbook
-      // );
-
-      const token = this.getToken();
-      if (!token) {
-        return null;
-      }
-
-      const response = await fetch("/api/workbook", {
-        method: "POST",
-
-        credentials: "include",
-
-        headers: { Authorization: `Bearer ${token}` },
-
-        body: JSON.stringify(workbook),
-      });
-
-      // -----------------------------------------
-      // Unauthorized
-      // -----------------------------------------
-
-      if (response.status === 401) {
-        this.setStatus("Session expired");
-
-        if (this.auth && typeof this.auth.requireLogin === "function") {
-          await this.auth.requireLogin();
-        }
-
-        return;
-      }
-
-      // -----------------------------------------
-      // API error
-      // -----------------------------------------
-
-      if (!response.ok) {
-        let message = `Save failed (${response.status})`;
-
-        try {
-          const error = await response.json();
-
-          if (error && (error.message || error.error)) {
-            message = error.message || error.error;
-          }
-        } catch {
-          // Not JSON
-        }
-
-        throw new Error(message);
-      }
-
-      // -----------------------------------------
-      // Response
-      // -----------------------------------------
-
-      let result = null;
+    if (!response.ok) {
+      let message = `Save failed (${response.status})`;
 
       try {
-        result = await response.json();
+        const error = await response.json();
+
+        if (error && (error.message || error.error)) {
+          message = error.message || error.error;
+        }
       } catch {
-        // Empty response is okay.
+        // Response was not JSON
       }
 
-      console.log("Workbook saved:", result);
-
-      this.setStatus("Saved to database " + new Date().toLocaleTimeString());
-    } catch (error) {
-      console.error("Save workbook failed:", error);
-
-      this.setStatus("Save failed");
+      throw new Error(message);
     }
-  }
 
+    const result = await response.json();
+
+    console.log("Workbook saved:", result);
+
+    this.setStatus(
+      "Saved to database " +
+      new Date().toLocaleTimeString()
+    );
+
+  } catch (error) {
+    console.error("Save workbook failed:", error);
+
+    this.setStatus("Save failed");
+  }
+}
   // =================================================
   // FORMULA BAR
   // =================================================

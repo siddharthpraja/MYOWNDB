@@ -13,6 +13,9 @@ const exportRoutes = require("./routes/exportRoutes");
 
 const app = express();
 
+app.use(express.json());
+
+
 const PORT = 3000;
 
 const DATA_DIR = path.join(__dirname, "data");
