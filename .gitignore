@@ -1,4 +1,2 @@
 node_modules/
-data/users.json
-data/databases/
 .env

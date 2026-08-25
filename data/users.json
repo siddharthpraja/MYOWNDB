@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1786445636345",
+    "name": "Gautam",
+    "email": "praja.siddharth@gmail.com",
+    "passwordHash": "$2b$12$0tMbd7vprG8X8xlsnOLIO.xiqS0BxWMEWda114ZoJnLdcU6olns8a",
+    "createdAt": "2026-08-11T10:53:56.345Z"
+  },
+  {
+    "id": "1786447244261",
+    "name": "Siddharth",
+    "email": "gautam@gmail.com",
+    "passwordHash": "$2b$12$3a7E1aW94VVRday/Pn.4wO6GAt5/YcAgDrvHdw4JXsTajEbxGkONu",
+    "createdAt": "2026-08-11T11:20:44.261Z"
+  },
+  {
+    "id": "1786469048577",
+    "name": "Admin",
+    "email": "admin@test.com",
+    "passwordHash": "$2b$12$zhkdeK0FSe2uVxrY1ymtpeLmNP4.fBq/7.YhAoABdP.BnwVDAuCt2",
+    "createdAt": "2026-08-11T17:24:08.578Z"
+  }
+]
