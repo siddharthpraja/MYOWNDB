@@ -293,6 +293,25 @@ export default class SpreadsheetController {
           this.updateFormulaBar(worksheet, Number(x1), Number(y1));
         },
 
+        onbeforepaste: (worksheet, data, x, y) => {
+          return data.map(row =>
+            row.map(value => {
+              if (value === null || value === undefined) {
+                return "";
+              }
+
+              const text = String(value);
+
+              // Keep DD-MM-YYYY as TEXT
+              if (/^\d{2}-\d{2}-\d{4}(?:\s+\d{1,2}:\d{2}:\d{2})?$/.test(text)) {
+                return "'" + text;
+              }
+
+              return value;
+            })
+          );
+        },
+
         // --------------------------------
         // Cell changed
         // --------------------------------

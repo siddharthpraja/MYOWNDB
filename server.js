@@ -1,6 +1,7 @@
 const express = require("express");
 const session = require("express-session");
 const path = require("path");
+const cors = require("cors");
 const fs = require("fs");
 
 const authRoutes = require("./routes/authRoutes");
@@ -12,6 +13,13 @@ const queryRoutes = require("./routes/queryRoutes");
 const exportRoutes = require("./routes/exportRoutes");
 
 const app = express();
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 
@@ -63,6 +71,8 @@ app.use("/api/export", exportRoutes);
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
+
+
 
 app.use((req, res) => {
   res.status(404).json({

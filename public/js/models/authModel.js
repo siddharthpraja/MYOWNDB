@@ -2,12 +2,23 @@ export default class AuthModel {
   getToken() {
     return localStorage.getItem("authToken");
   }
-  setToken(token) {
+  getTokenExp() {
+    return localStorage.getItem("authTokenExp");
+  }
+  getTokenLog() {
+    return localStorage.getItem("loginAtDate");
+  }
+  setToken(token, expiresAtDate,loginAtDate) {
     localStorage.setItem("authToken", token);
+    localStorage.setItem("authTokenExp", expiresAtDate);
+    localStorage.setItem("loginAtDate", loginAtDate);
   }
   removeToken() {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("authTokenExp");
+    localStorage.removeItem("loginAtDate");
   }
+  
 
   async login(email, password) {
     const response = await fetch("/api/auth/login", {
@@ -20,7 +31,7 @@ export default class AuthModel {
       throw new Error(data.error || "Login failed");
     }
     /* Save token after successful login */ if (data.token) {
-      this.setToken(data.token);
+      this.setToken(data.token, data.expiresAtDate, data.loginAtDate);
     }
     return data;
   }
@@ -39,7 +50,7 @@ export default class AuthModel {
       throw new Error(data.error || "Registration failed");
     }
     /* Save token after successful registration */ if (data.token) {
-      this.setToken(data.token);
+      this.setToken(data.token, data.expiresAtDate, data.loginAtDate);
     }
     return data;
   }

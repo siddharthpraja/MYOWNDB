@@ -16,22 +16,7 @@ function getWorkbook(req, res) {
 
 function saveWorkbook(req, res) {
   try {
-    console.log("========== SAVE WORKBOOK ==========");
 
-    console.log(
-      "Content-Type:",
-      req.headers["content-type"]
-    );
-
-    console.log(
-      "Request body:",
-      req.body
-    );
-
-    console.log(
-      "Request body JSON:",
-      JSON.stringify(req.body, null, 2)
-    );
 
     const workbook = req.body;
 
@@ -72,9 +57,7 @@ function saveWorkbook(req, res) {
       workbook
     );
 
-    console.log(
-      `Workbook saved for user: ${req.userId}`
-    );
+
 
     return res.json({
       success: true

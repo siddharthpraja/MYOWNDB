@@ -209,16 +209,63 @@ function gridToSheet(grid) {
 
   // Make sure every row is an array
   const validGrid = grid.map((row) => {
-    if (Array.isArray(row)) {
-      return row;
+    if (!Array.isArray(row)) {
+      return [];
     }
 
-    return [];
+    return row.map((value) => {
+      // Preserve DD-MM-YYYY as STRING
+      if (
+        typeof value === "string" &&
+        /^\d{2}-\d{2}-\d{4}(?:\s+\d{1,2}:\d{2}:\d{2})?$/.test(value)
+      ) {
+        return String(value);
+      }
+
+      return value;
+    });
   });
 
   const sheet =
     XLSX.utils.aoa_to_sheet(validGrid);
 
+  // Force DD-MM-YYYY cells to text
+  if (sheet["!ref"]) {
+    const range = XLSX.utils.decode_range(
+      sheet["!ref"]
+    );
+
+    for (
+      let row = range.s.r;
+      row <= range.e.r;
+      row++
+    ) {
+      for (
+        let col = range.s.c;
+        col <= range.e.c;
+        col++
+      ) {
+        const address =
+          XLSX.utils.encode_cell({
+            r: row,
+            c: col
+          });
+
+        const cell = sheet[address];
+
+        if (
+          cell &&
+          typeof cell.v === "string" &&
+          /^\d{2}-\d{2}-\d{4}(?:\s+\d{1,2}:\d{2}:\d{2})?$/.test(cell.v)
+        ) {
+          cell.t = "s";
+          cell.v = String(cell.v);
+        }
+      }
+    }
+  }
+
+  // Convert formulas after text handling
   convertFormulaStringsToFormulas(sheet);
 
   return sheet;

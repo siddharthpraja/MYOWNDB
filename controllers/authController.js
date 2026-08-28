@@ -4,7 +4,7 @@ const userModel = require("../models/userModel");
 
 const workbookModel = require("../models/workbookModel");
 
-const { createToken } = require("../services/tokenService");
+const { createToken, verifyToken } = require("../services/tokenService");
 
 async function register(req, res) {
   try {
@@ -52,11 +52,14 @@ async function register(req, res) {
 
     const token = createToken(user);
 
+    const decoded = verifyToken(token);
+
     res.json({
       success: true,
 
       token,
-
+      expiresAtDate: new Date(decoded.exp * 1000).toISOString(),
+      loginAtDate: new Date(),
       user: {
         id: user.id,
         name: user.name,
@@ -99,12 +102,14 @@ async function login(req, res) {
     }
 
     const token = createToken(user);
+    const decoded = verifyToken(token);
 
     res.json({
       success: true,
 
       token,
-
+      expiresAtDate: new Date(decoded.exp * 1000).toISOString(),
+      loginAtDate: new Date(),
       user: {
         id: user.id,
         name: user.name,
