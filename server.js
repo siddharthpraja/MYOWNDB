@@ -11,12 +11,13 @@ const columnRoutes = require("./routes/columnRoutes");
 const rowRoutes = require("./routes/rowRoutes");
 const queryRoutes = require("./routes/queryRoutes");
 const exportRoutes = require("./routes/exportRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const app = express();
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://localhost:8081"],
     credentials: true,
   })
 );
@@ -60,6 +61,11 @@ app.use(
 
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
+
 app.use("/api/auth", authRoutes);
 app.use("/api/workbook", workbookRoutes);
 app.use("/api/tables", tableRoutes);
@@ -67,6 +73,7 @@ app.use("/api/columns", columnRoutes);
 app.use("/api/rows", rowRoutes);
 app.use("/api/query", queryRoutes);
 app.use("/api/export", exportRoutes);
+app.use("/api/upload", uploadRoutes);
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
